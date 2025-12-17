@@ -79,11 +79,10 @@ SELECT
   *
 FROM retail_sales
 WHERE 
-    category = 'Clothing'
-    AND 
-    TO_CHAR(sale_date, 'YYYY-MM') = '2022-11'
-    AND
-    quantity >= 4
+    WHERE category = 'Clothing'
+  AND sale_date >= '2022-11-01'
+  AND sale_date < '2022-12-01'
+  AND quantiy >= 4;
 ```
 
 3. **Write a SQL query to calculate the total sales (total_sale) for each category.**:
@@ -126,21 +125,16 @@ ORDER BY 1
 
 7. **Write a SQL query to calculate the average sale for each month. Find out best selling month in each year**:
 ```sql
-SELECT 
-       year,
-       month,
-    avg_sale
-FROM 
-(    
-SELECT 
-    EXTRACT(YEAR FROM sale_date) as year,
-    EXTRACT(MONTH FROM sale_date) as month,
-    AVG(total_sale) as avg_sale,
-    RANK() OVER(PARTITION BY EXTRACT(YEAR FROM sale_date) ORDER BY AVG(total_sale) DESC) as rank
-FROM retail_sales
-GROUP BY 1, 2
-) as t1
-WHERE rank = 1
+select Year, month, avg_sale from
+  (
+  select 
+         YEAR(sale_date)  AS Year,
+         MONTH(sale_date) AS Month,
+         avg(total_sale) as avg_sale,
+         rank() over(partition by Year(sale_date) order by  avg(total_sale)) as rank_oder
+         from retail_sales
+         group by 1,2) as rnk 
+where rank_oder = 1;
 ```
 
 8. **Write a SQL query to find the top 5 customers based on the highest total sales **:
@@ -165,22 +159,14 @@ GROUP BY category
 
 10. **Write a SQL query to create each shift and number of orders (Example Morning <12, Afternoon Between 12 & 17, Evening >17)**:
 ```sql
-WITH hourly_sale
-AS
-(
-SELECT *,
-    CASE
-        WHEN EXTRACT(HOUR FROM sale_time) < 12 THEN 'Morning'
-        WHEN EXTRACT(HOUR FROM sale_time) BETWEEN 12 AND 17 THEN 'Afternoon'
-        ELSE 'Evening'
-    END as shift
-FROM retail_sales
-)
-SELECT 
-    shift,
-    COUNT(*) as total_orders    
-FROM hourly_sale
-GROUP BY shift
+select
+    case
+       when hour(sale_time) < 12 then "Morning"
+	   when hour(sale_time) between 12 and 17 then "Afternoon"
+       Else "Evening"
+    end as shift, count(quantiy) as total_Number_oder
+from retail_sales
+group by shift;
 ```
 
 ## Findings
